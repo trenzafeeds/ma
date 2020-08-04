@@ -6,22 +6,11 @@ syntax: glob
 *~
 *.db
 
+__pycache__
+
 # Virtualenv
 venv
 build
-
-# setuptools
-build/*
-Stegano.egg-info/*
-dist/*
-
-# tests
-.coverage
-.mypy_cache/
-.cache/
-
-# sphinx
-docs/_build
 
 # Emacs
 eproject.cfg

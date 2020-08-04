@@ -1,0 +1,8 @@
+# List of things to do
+
+ - Prefab input form (option for custom message)
+ - CLI interface
+ - GUI interface
+ - Stegano modifications
+   - Insertion into video frames
+   - Preservation through screenshots (is this possible?)
