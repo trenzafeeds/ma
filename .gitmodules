@@ -1,0 +1,3 @@
+[submodule "Stegano"]
+	path = Stegano
+	url = https://github.com/trenzafeeds/Stegano.git
