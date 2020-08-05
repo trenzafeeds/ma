@@ -5,6 +5,8 @@ lib.py
 Kat Cannon-MacMartin | guthrie@marlboro.edu
 """
 
+# Imports
+
 import sys, os, json
 
 def scriptpath():
@@ -14,7 +16,11 @@ sys.path.append(scriptpath()+"/Stegano")
 
 from stegano import lsb
 
+# Macros
+
 PRINTORDER = ['id', 'author', 'client', 'platform', 'date'] 
+
+# Class Definitions
 
 class WaterMark:
 
@@ -31,6 +37,9 @@ class WaterMark:
     def insert(self, key, val):
         self.data[key] = val
 
+    def tempinsert(self, tempdata):
+        return json.dumps(self.data.update(tempdata))
+
     def dumpjson(self):
         return json.dumps(self.data)
 
@@ -44,6 +53,29 @@ class WaterMark:
                 if field in self.data.keys(): pairprint(field, self.data)
             for key in self.data.keys():
                 if key not in self.printorder: pairprint(field, self.data)
+
+def write_wm(wm, ifpath, ofpath):
+    encoded = lsb.hide(ifpath, wm.dumpjson())
+    encoded.save(ofpath)
+
+def read_wm(wm, ifpath):
+    """ Returns 2 for STANDARD message read. Returns 3 for CUSTOM message read.
+        Returns 1 for NO message read.
+    """
+    rt = 2
+    message = lsb.reveal(ifpath)
+    if not message: return 1
+    try:
+        messsage = json.loads(message)
+    except:
+        wm.custom = True
+        rt = 3
+    wm.data = message
+    return rt
+    
+
+def insert_temps(wm, templist):
+    return [ wm.tempinsert(temps) for temps in templist ]
 
 # Utility Functions
 
