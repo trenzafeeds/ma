@@ -8,6 +8,7 @@ Kat Cannon-MacMartin | guthrie@marlboro.edu
 # Imports
 
 import sys, os, json
+from datetime import date
 
 def scriptpath():
     return os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,8 @@ from stegano import lsb
 
 # Macros
 
-PRINTORDER = ['id', 'author', 'client', 'platform', 'date'] 
+PRINTORDER = ['id', 'author', 'client', 'platform', 'date']
+DATE = date.today()
 
 # Class Definitions
 
@@ -35,6 +37,7 @@ class WaterMark:
         return self.data == None
 
     def insert(self, key, val):
+        if self.data == None: self.data = {}
         self.data[key] = val
 
     def tempinsert(self, tempdata):
@@ -72,7 +75,6 @@ def read_wm(wm, ifpath):
         rt = 3
     wm.data = message
     return rt
-    
 
 def insert_temps(wm, templist):
     return [ wm.tempinsert(temps) for temps in templist ]
@@ -87,9 +89,17 @@ def tcheck(var, desired_type):
         err_type_mismatch(var, desired_type)
     else: return True
 
+def clear():
+    if os.name == 'nt': _ = os.system('cls')
+    else: _ = os.system('clear')
+
 # Error Messages
 
 def err_type_mismatch(var, desired_type):
     print("Error: Value", str(var), "is of type", type(var),\
           "instead of desired type", desired_type)
     sys.exit(1)
+
+def err_invalid_command(command):
+    print("Error: {} is not a valid command. Press 'h' for more help."\
+          .format(command))
