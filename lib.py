@@ -56,8 +56,8 @@ class WaterMark:
         else:
             for field in self.printorder:
                 if field in self.data.keys(): pairprint(field, self.data)
-            for key in self.data.keys():
-                if key not in self.printorder: pairprint(field, self.data)
+            for field in self.data.keys():
+                if field not in self.printorder: pairprint(field, self.data)
 
 def write_wm(wm, ifpath, ofpath):
     encoded = lsb.hide(ifpath, wm.dumpjson())
@@ -72,7 +72,7 @@ def read_wm(wm, ifpath):
     message = lsb.reveal(ifpath)
     if not message: return 1
     try:
-        messsage = json.loads(message)
+        message = json.loads(message)
     except:
         wm.custom = True
         rt = 3
@@ -148,7 +148,7 @@ def err_file_nexist(path):
     return False
 
 def err_file_type_nsupported(ext):
-    print("Error: {} files are not supported at this time.".format(ext))
+    print("Error: '{}' files are not supported at this time.".format(ext))
     return False
 
 def err_invalid_dir(path):

@@ -14,9 +14,9 @@ def cprinter(code):
     global V
     codes = {
         'intro' : "Welcome to ma {}.".format(V),
-        'repl' : "Press 'n' to create a new watermark template.\nPress 'w' to \
-apply a watermark to a single image.\nPress 'b' for a batch job.\nPress 'h' for \
-help.\nPress 'q' to quit.",
+        'cmdlist' : "Press 'n' to create a new watermark template.\nPress 'w' to \
+apply a watermark to a single image.\nPress 'b' for a batch job. Press 'r' to \
+read a watermark.\nPress 'h' for help.\nPress 'q' to quit.",
         'author' : "Input the creator's name or identifier: ",
         'client' : "Next, input the specific client's name or identifier \
 (leave blank if not applicable): ",
@@ -25,6 +25,11 @@ be distributed: ",
         'template' : "Enter a name for the template to save: "
         }
     return codes[code]
+
+def get_target_file():
+    while True:
+        fpath = input("Enter the path to the target file: ")
+        if (file_exists(fpath) and file_type(fpath)): return fpath
 
 def create_template():
     wm = WaterMark(None)
@@ -66,9 +71,7 @@ def apply_wm_cli():
     global TEMPPATH
     t = get_template(read_templates(TEMPPATH))
     if t == 1: t = create_template()
-    while True:
-        fpath = input("Enter the path to the target file: ")
-        if (file_exists(fpath) and file_type(fpath)): break
+    fpath = get_target_file()
     while True:
         opath = input("Enter a path to save the watermarked image (leave blank \
 to replace the target file): ")
@@ -79,26 +82,40 @@ to replace the target file): ")
             break
     return write_wm(t, fpath, opath)
 
+def read_wm_cli(args):
+    if len(args) == 0: fpath = get_target_file()
+    elif (file_exists(args[0]) and file_type(args[0])): fpath = args[0]
+    else: return 1
+    wm = WaterMark(None)
+    rt = read_wm(wm, fpath)
+    if rt == 2: wm.printdata()
+    elif rt == 3: print("Custom data:\n{}".format(wm.data()))
+    else: print("No watermark read from file '{}'".format(fpath))
+
 def repl():
     global TEMPPATH
-    print(cprinter('repl'))
-    cmd = input('> ')
+    # print(cprinter('repl'))
+    cmd = input('> ').split()
     # 'visible' commands
-    if cmd in ['n', 'new']:
+    if cmd == []:
+        return 0
+    elif cmd[0] in ['n', 'new']:
         templates = read_templates(TEMPPATH)
         return create_template(templates)
-    elif cmd == 'w':
+    elif cmd[0] in ['w', 'write']:
         apply_wm_cli()
-    elif cmd == 'b':
+    elif cmd[0] in ['b', 'batch']:
         print("Batch jobs enabled soon :)")
-    elif cmd in ['h', 'help']:
-        print("Help section coming soon :)")
-    elif cmd in ['q', 'exit', 'quit']:
+    elif cmd[0] in ['r', 'read']:
+        read_wm_cli(cmd[1:])
+    elif cmd[0] in ['h', 'help']:
+        print(cprinter('cmdlist'))
+    elif cmd[0] in ['q', 'exit', 'quit']:
         return 2
     # 'hidden' commands
-    elif cmd in ['c', 'clear']:
+    elif cmd[0] in ['c', 'clear']:
         clear()
-    elif cmd in ['l', 'list']:
+    elif cmd[0] in ['l', 'list']:
         list_templates()
     else:
         err_invalid_command(cmd)
