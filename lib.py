@@ -15,12 +15,14 @@ def scriptpath():
 
 sys.path.append(scriptpath()+"/Stegano")
 
-from stegano import lsb
+from stegano import lsb, exifHeader
 
 # Macros
 
 PRINTORDER = ['id', 'author', 'client', 'platform', 'date']
-FILETYPES = ['.jpg', '.jpeg', '.png']
+FILETYPES = ['.jpg', '.jpeg', '.png', '.tiff']
+LSB = ['.png']
+EXIF = ['.jpg', '.jpeg', '.tiff']
 DATE = date.today()
 TEMPPATH = scriptpath() + "/config/templates"
 
@@ -60,8 +62,13 @@ class WaterMark:
                 if field not in self.printorder: pairprint(field, self.data)
 
 def write_wm(wm, ifpath, ofpath):
-    encoded = lsb.hide(ifpath, wm.dumpjson())
-    encoded.save(ofpath)
+    global LSB, EXIF
+    if get_ftype(ifpath) in LSB:
+        encoded = lsb.hide(ifpath, wm.dumpjson())
+        encoded.save(ofpath)
+    elif get_ftype(ifpath) in EXIF:
+        encoded = exifHeader.hide(ifpath, ofpath, wm.dumpjson())
+    else: return err_file_type_nsupported(get_ftype(ifpath))
     return 0
 
 def read_wm(wm, ifpath):
@@ -69,7 +76,9 @@ def read_wm(wm, ifpath):
         Returns 1 for NO message read.
     """
     rt = 2
-    message = lsb.reveal(ifpath)
+    if get_ftype(ifpath) in LSB: message = lsb.reveal(ifpath)
+    elif get_ftype(ifpath) in EXIF: message=exifHeader.reveal(ifpath)
+    else: return err_file_type_nsupported(get_ftype(ifpath))
     if not message: return 1
     try:
         message = json.loads(message)
@@ -111,14 +120,17 @@ def write_templates(path, templates):
             return 1
         return 0
 
+def get_ftype(path):
+    return os.path.splitext(path)[1]
+
 def file_exists(path):
     if os.path.exists(path): return True
     else: return err_file_nexist(path)
 
 def file_type(path):
     global FILETYPES
-    if os.path.splitext(path)[1] in FILETYPES: return True
-    else: return err_file_type_nsupported(os.path.splitext(path)[1])
+    if get_ftype(path) in FILETYPES: return True
+    else: return err_file_type_nsupported(get_ftype(path))
 
 def nfile_direxists(path):
     if os.path.split(path)[0] == '': return True
@@ -153,3 +165,6 @@ def err_file_type_nsupported(ext):
 
 def err_invalid_dir(path):
     print("Error: the file {} does not have a valid directory path.".format(path))
+
+def err_invalid_template(name):
+    print("Error: no saved template with title '{}'.".format(name))

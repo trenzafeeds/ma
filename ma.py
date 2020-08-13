@@ -27,9 +27,21 @@ be distributed: ",
     return codes[code]
 
 def get_target_file():
-    while True:
-        fpath = input("Enter the path to the target file: ")
-        if (file_exists(fpath) and file_type(fpath)): return fpath
+    path = None
+    while path == None:
+        path = input("Enter the path to the target file: ")
+        if (file_exists(path) and file_type(path)): return path
+        else: path = None
+
+def get_save_file(target):
+    path = None
+    while path == None:
+            path = input("Enter a path to save the watermarked image (leave blank\
+ to replace the target file): ")
+            if path == '':
+                return target
+            elif nfile_exists(path): return path 
+            else: path = None
 
 def create_template():
     wm = WaterMark(None)
@@ -56,30 +68,39 @@ def list_templates():
     print("  ----  ")
     return 0
 
-def get_template(templates):
+def fetch_template(name, templates):
+    if name in templates.keys(): return WaterMark(templates[name])
+    else:
+        err_invalid_template(name)
+        return None
+
+def get_template_cli(templates):
     template = 0
-    while template == 0:
+    while not template:
         name = input(\
                 "Input a template name or leave blank to create a new watermark: ")
         if name == '': return 1
-        elif name in templates.keys(): template = templates[name]
-        else: print("No saved template with title '{}'. Please try again."\
-                    .format(name))
-    return WaterMark(template)
+        else: template = fetch_template(name, templates)
+    return template
 
-def apply_wm_cli():
+def apply_wm_cli(args):
     global TEMPPATH
-    t = get_template(read_templates(TEMPPATH))
-    if t == 1: t = create_template()
-    fpath = get_target_file()
-    while True:
-        opath = input("Enter a path to save the watermarked image (leave blank \
-to replace the target file): ")
-        if opath == '':
-            opath = fpath
-            break
-        elif nfile_exists(path):
-            break
+    t = 0
+    if len(args) > 0:
+        t = fetch_template(args[0], read_templates(TEMPPATH))
+        if t == 1: return 1
+    else:
+        t = get_template_cli(read_templates(TEMPPATH))
+        if t == 1: t = create_template()
+    if len(args) > 1:
+        if (file_exists(args[1]) and file_type(args[1])): fpath = args[1]
+        else: return 1
+        if len(args) == 2: opath = args[1]
+        elif nfile_direxists(args[2]): opath = args[2]
+        else: return 1
+    else:
+        fpath = get_target_file()
+        opath = get_save_file(fpath)
     return write_wm(t, fpath, opath)
 
 def read_wm_cli(args):
@@ -103,7 +124,7 @@ def repl():
         templates = read_templates(TEMPPATH)
         return create_template(templates)
     elif cmd[0] in ['w', 'write']:
-        apply_wm_cli()
+        apply_wm_cli(cmd[1:])
     elif cmd[0] in ['b', 'batch']:
         print("Batch jobs enabled soon :)")
     elif cmd[0] in ['r', 'read']:

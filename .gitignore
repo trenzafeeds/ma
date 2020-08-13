@@ -11,8 +11,9 @@ __pycache__
 # Project specific
 config/templates
 
-# cxFreeze
+# Release system
 build/
+release/
 
 # Virtualenv
 venv
